@@ -12,26 +12,22 @@ import sys
 from collections import defaultdict
 from itertools import izip
 
+from ..externals import six
+from ..externals.six.moves import xrange
+from ..externals.six import iteritems
 
-try:
-    import six as _compat
-    from six.moves import xrange
-except ImportError:
-    import pykit.utils._compat as _compat
-    from _compat import xrange
-from _compat import iteritems
 
-if not _compat.PY2:
+if not six.PY2:
     unicode = str
 
 
-logger = logging.get(__name__)
+logger = logging.getLogger(__name__)
 
 
 def to_utf8(text, encoding='utf-8', errors='strict'):
     """Convert a string (unicode or bytestring in `encoding`), to bystring in
     utf-8 encoding. """
-    if isinstance(text, _compat.unicode):
+    if isinstance(text, unicode):
         return text.encode('utf-8')
     else:
         return unicode(text, encoding, errors=errors).encode('utf-8')
@@ -39,14 +35,14 @@ def to_utf8(text, encoding='utf-8', errors='strict'):
 
 def to_unicode(text, encoding='utf-8', errors='strict'):
     """Convert a string (bytesstring in `encoding` or unicode) to unicode. """
-    if isinstance(text, _compat.unicode):
+    if isinstance(text, unicode):
         return text
     else:
         return unicode(text, encoding, errors=errors)
 
 
 def codecs_open(filename, mode='r', encoding=None, errors=None):
-    if _compat.PY2:
+    if six.PY2:
         import codecs
         return codecs.open(filename, mode=mode, encoding=encoding,
                            errors=errors)
@@ -61,7 +57,7 @@ def file_or_filename(input):
     Args:
         input: either a filename or a file-like object supporting seeking
     """
-    if isinstance(input, _compat.string_types):
+    if isinstance(input, six.string_types):
         # input is a filename, open as a file
         yield open(input)
     else:
