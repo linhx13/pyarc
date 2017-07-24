@@ -77,11 +77,12 @@ class Connection(object):
     MySQLdb version >= 1.2.5 and MySQL version > 5.1.12.
     """
     def __init__(self, host, database, port=3306, user=None, password=None,
-                 max_idle_time=7 * 3600, connect_timeout=0, autocommit=False
+                 max_idle_time=7 * 3600, connect_timeout=0, autocommit=False,
                  time_zone="+8:00", charset="utf8", sql_mode="TRADITIONAL",
                  **kwargs):
         self.host = host
         self.database = database
+        self.port = port
         self.max_idle_time = float(max_idle_time)
         self.autocommit = autocommit
 
@@ -116,7 +117,7 @@ class Connection(object):
     def __enter__(self):
         return self
 
-    def __exit__(sefl):
+    def __exit__(self):
         self.close()
 
     def __del__(self):
