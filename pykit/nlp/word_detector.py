@@ -91,19 +91,25 @@ class WordDetector(SaveLoad):
         for sentence_no, sentence in enumerate(sentences):
             if sentence_no % self.progress_per == 0:
                 logger.info('PROGRESS: at sentence %d', sentence_no)
-            sen_len, sentence = self._preprocess_sentence(sentence, self.SEP)
-            self.corpus_count += sen_len
-            for suf in self._index_of_suffix(1, len(sentence) - 1,
-                                             self.max_word_len):
-                word = sentence[suf[0]:suf[1]]
-                if word not in self.vocab:
-                    self.vocab[word] = WordInfo(word)
-                logger.debug('suf:%s, word:%s, left:%s, right:%s' %
-                             (suf, to_utf8(word),
-                              to_utf8(sentence[suf[0] - 1]),
-                              to_utf8(sentence[suf[1]])))
-                self.vocab[word].update(sentence[suf[0] - 1],
-                                        sentence[suf[1]])
+            try:
+                sen_len, sentence = \
+                    self._preprocess_sentence(sentence, self.SEP)
+                self.corpus_count += sen_len
+                for suf in self._index_of_suffix(1, len(sentence) - 1,
+                                                 self.max_word_len):
+                    word = sentence[suf[0]:suf[1]]
+                    if word not in self.vocab:
+                        self.vocab[word] = WordInfo(word)
+                    logger.debug('suf:%s, word:%s, left:%s, right:%s' %
+                                 (suf, to_utf8(word),
+                                  to_utf8(sentence[suf[0] - 1]),
+                                  to_utf8(sentence[suf[1]])))
+                    self.vocab[word].update(sentence[suf[0] - 1],
+                                            sentence[suf[1]])
+            except Exception as ex:
+                logger.warn('Processing error: %s, sentence: %s',
+                            ex, to_utf8(sentence))
+                continue
 
     def partial_fit(self, sentences):
         self.fit(sentences)
