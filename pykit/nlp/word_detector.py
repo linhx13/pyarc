@@ -107,8 +107,7 @@ class WordDetector(SaveLoad):
                     self.vocab[word].update(sentence[suf[0] - 1],
                                             sentence[suf[1]])
             except Exception as ex:
-                logger.warn('Processing error: %s, sentence: %s',
-                            ex, to_utf8(sentence))
+                logger.warn('Processing error: %s', ex)
                 continue
 
     def partial_fit(self, sentences):
