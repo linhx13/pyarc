@@ -22,7 +22,7 @@ def split_sentences(text):
     Returns:
       a list of sentences
     '''
-    res = __periods_pat.split(text)[:-1]
+    res = __periods_pat.split(text)
     return (''.join(res[i:i+2]).strip() for i in xrange(0, len(res), 2))
 
 
