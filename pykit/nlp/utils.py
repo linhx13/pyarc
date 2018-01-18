@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 
 import re
+from itertools import ifilter
 
 
 __english_periods = u'\r|\n|\?!|!|\?|\. '
@@ -23,8 +24,8 @@ def split_sentences(text):
       a list of sentences
     '''
     res = __periods_pat.split(text)
-    y = (''.join(res[i:i+2]).strip() for i in xrange(0, len(res), 2))
-    return (x for x in y if x)
+    return ifilter(
+        None, (''.join(res[i:i+2]).strip() for i in xrange(0, len(res), 2)))
 
 
 def str_half2full(text):
