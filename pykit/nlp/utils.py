@@ -8,7 +8,7 @@ import re
 __english_periods = u'\r|\n|\?!|!|\?|\. '
 __three_periods = u'？！”|。’”|！’”|……”'
 __two_periods = u'。”|！”|？”|；”|？！|……'
-__one_periods = u'！|？|｡|。|'
+__one_periods = u'！|？|｡|。'
 
 __periods_pat = re.compile(u'(%s)' % '|'.join(
     [__english_periods, __three_periods, __two_periods, __one_periods]))
