@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import re
-from itertools import ifilter
+import itertools
+from zhon import hanzi
 
 
 __english_periods = u'\r|\n|\?!|!|\?|\. '
@@ -15,6 +17,13 @@ __periods_pat = re.compile(u'(%s)' % '|'.join(
     [__english_periods, __three_periods, __two_periods, __one_periods]))
 
 
+english_sentence_end = u'\r|\n|\?!\s*|!\s*|\?\s*|\. '
+chinese_sentence_end = hanzi._sentence_end
+sentence_end = u'(?:%s)' % \
+    ('|'.join([english_sentence_end, hanzi._sentence_end, '$']))
+sentence = u'.+?%s' % sentence_end
+
+
 def split_sentences(text):
     ''' Split text into sentences.
 
@@ -23,9 +32,7 @@ def split_sentences(text):
     Returns:
       a list of sentences
     '''
-    res = __periods_pat.split(text)
-    return ifilter(
-        None, (''.join(res[i:i+2]).strip() for i in xrange(0, len(res), 2)))
+    return re.findall(sentence, text)
 
 
 def str_half2full(text):
@@ -120,6 +127,26 @@ def convert_fh(text, *maps, **ops):
         for fr, to in m:
             text = replace(text, fr, to)
     return text
+
+
+PHONE_PAT = re.compile(r'1\d{10}')
+URL_PAT = re.compile(
+    '(?:https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]'
+)
+
+
+def find_ngrams(seq, n):
+    return itertools.izip(*[itertools.islice(seq, i, None) for i in xrange(n)])
+
+
+def extract_ngrams(sequence, ngram_range, sep=None):
+    sequence = list(sequence)
+    it = itertools.chain \
+        .from_iterable(find_ngrams(sequence, n)
+                       for n in xrange(ngram_range[0], ngram_range[1]+1))
+    if sep is not None:
+        it = itertools.imap(sep.join, it)
+    return it
 
 
 if __name__ == '__main__':
