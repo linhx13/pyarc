@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import re
 import itertools
 from zhon import hanzi
+import opencc
 
 
 __english_periods = u'\r|\n|\?!|!|\?|\. '
@@ -17,11 +18,11 @@ __periods_pat = re.compile(u'(%s)' % '|'.join(
     [__english_periods, __three_periods, __two_periods, __one_periods]))
 
 
-english_sentence_end = u'\r|\n|\?!\s*|!\s*|\?\s*|\. '
-chinese_sentence_end = hanzi._sentence_end
-sentence_end = u'(?:%s)' % \
-    ('|'.join([english_sentence_end, hanzi._sentence_end, '$']))
-sentence = u'.+?%s' % sentence_end
+ENGLISH_SENTENCE_END = u'\r|\n|\?!\s*|!\s*|\?\s*|\. '
+CHINESE_SENTENCE_END = hanzi._sentence_end
+SENTENCE_END = u'(?:%s)' % \
+    ('|'.join([ENGLISH_SENTENCE_END, CHINESE_SENTENCE_END, '$']))
+SENTENCE = u'.+?%s' % SENTENCE_END
 
 
 def split_sentences(text):
@@ -32,7 +33,7 @@ def split_sentences(text):
     Returns:
       a list of sentences
     '''
-    return re.findall(sentence, text)
+    return re.findall(SENTENCE, text)
 
 
 def str_half2full(text):
@@ -129,12 +130,6 @@ def convert_fh(text, *maps, **ops):
     return text
 
 
-PHONE_PAT = re.compile(r'1\d{10}')
-URL_PAT = re.compile(
-    '(?:https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]'
-)
-
-
 def find_ngrams(seq, n):
     return itertools.izip(*[itertools.islice(seq, i, None) for i in xrange(n)])
 
@@ -147,6 +142,61 @@ def extract_ngrams(sequence, ngram_range, sep=None):
     if sep is not None:
         it = itertools.imap(sep.join, it)
     return it
+
+
+URL = u'(?:(?:https?|ftp|file)://|www\.|ftp\.)[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]'
+EMAIL = u'''[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*'''
+PHONE = u'(?<!\d)(?:\+?[0-9]{2,3}-)?(?:[0-9]{2,4}-)?[0-9]{7,8}(?:-[0-9]{1,4})?(?!\d)'
+MOBILE = u'(?<!\d)(?:\+?[0-9]{2,3}-)?1(?:3[0-9]|4[57]|5[0-35-9]|7[0135678]|8[0-9])\d{8}(?!\d)'
+ZIP_CODE = u'(?<!\d)[1-9]{1}\d{5}(?!\d)'
+QQ = u'(?:(?:QQ|qq).{5,10})[1-9][0-9]{4,}(?!\d)'
+
+
+ENTITY_MAPPING = {
+    URL: '<URL>', EMAIL: '<EMAIL>', PHONE: '<PHONE>', MOBILE: '<MOBILE>',
+    ZIP_CODE: '<ZIP_CODE>', QQ: '<QQ>'
+}
+
+
+def simple_preprocess(text, trim_space=True, t2s=False, full2half=False,
+                      lower=False, maps=None):
+    if not text:
+        return text
+    if trim_space:
+        text = re.sub(u'\s{2,}', ' ', text)
+    if t2s:
+        text = opencc.convert(text)
+    if full2half:
+        text = str_full2half(text)
+    if lower:
+        text = text.lower()
+    for m in maps or []:
+        for fr, to in m.iteritems():
+            text = re.sub(fr, to, text)
+    return text
+
+
+def merge_segmented_entities(words, entity_list):
+    res = []
+    cur = []
+    for t in words:
+        if t == '<':
+            cur = [t]
+        elif t == '>':
+            cur.append(t)
+            e = ''.join(cur)
+            if e in entity_list:
+                res.append(e)
+            else:
+                res.extend(cur)
+            cur = []
+        else:
+            if cur:
+                cur.append(t)
+            else:
+                res.append(t)
+    res.extend(cur)
+    return res
 
 
 if __name__ == '__main__':
