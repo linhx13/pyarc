@@ -11,6 +11,7 @@ import os
 import sys
 from collections import defaultdict
 from itertools import izip
+import random
 
 from ..externals import six
 from ..externals.six.moves import xrange
@@ -195,3 +196,16 @@ def convert_to_defaultdict(x):
         raise ValueError("Invalid param type %s for jaccard similarity" %
                          type(x))
     return k
+
+
+def random_sample(input_data, sample_count, seed=None):
+    random.seed(seed)
+    output_data = []
+    for data_idx, data in enumerate(input_data):
+        if len(output_data) < sample_count:
+            output_data.append(data)
+            continue
+        r = random.randint(0, data_idx + 1)
+        if r < len(output_data):
+            output_data[r] = data
+    return output_data
