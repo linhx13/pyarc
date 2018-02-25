@@ -153,8 +153,8 @@ QQ = u'(?:(?:QQ|qq).{5,10})[1-9][0-9]{4,}(?!\d)'
 
 
 ENTITY_MAPPING = {
-    URL: '<URL>', EMAIL: '<EMAIL>', PHONE: '<PHONE>', MOBILE: '<MOBILE>',
-    ZIP_CODE: '<ZIP_CODE>', QQ: '<QQ>'
+    URL: '<url>', EMAIL: '<email>', PHONE: '<phone>', MOBILE: '<mobile>',
+    ZIP_CODE: '<zip_code>', QQ: '<qq>'
 }
 
 
@@ -177,26 +177,25 @@ def simple_preprocess(text, trim_space=True, t2s=False, full2half=False,
 
 
 def merge_segmented_entities(words, entity_list):
+    s = ' '.join(words)
     res = []
     cur = []
-    for t in words:
+    for t in s:
         if t == '<':
+            res.extend(cur)
             cur = [t]
         elif t == '>':
             cur.append(t)
-            e = ''.join(cur)
+            e = re.sub(u'\s+', '', ''.join(cur))
             if e in entity_list:
                 res.append(e)
             else:
                 res.extend(cur)
             cur = []
         else:
-            if cur:
-                cur.append(t)
-            else:
-                res.append(t)
+            cur.append(t)
     res.extend(cur)
-    return res
+    return ''.join(res).split()
 
 
 if __name__ == '__main__':
