@@ -13,9 +13,9 @@ from collections import defaultdict
 from itertools import izip
 import random
 
-from ..externals import six
-from ..externals.six.moves import xrange
-from ..externals.six import iteritems
+import six
+from six.moves import xrange
+from six import iteritems
 
 
 if not six.PY2:

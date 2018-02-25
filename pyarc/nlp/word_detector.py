@@ -11,8 +11,8 @@ import math
 from six import string_types
 
 from scipy.stats import entropy
-from pykit.utils.gensim_utils import SaveLoad
-from pykit.utils import to_utf8, to_unicode
+from gensim.utils import SaveLoad
+from pyarc.utils import to_utf8, to_unicode
 
 logger = logging.getLogger(__name__)
 

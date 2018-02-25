@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import codecs
 from six import string_types
-from pykit.utils import to_unicode
+from pyarc.utils import to_unicode
 
 
 class MMSegmentor(object):
