@@ -7,7 +7,7 @@ from keras.layers import Dropout, GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import Conv1D, Bidirectional, LSTM, RNN
 from keras.layers import Concatenate, Input, TimeDistributed
 from keras.models import Model
-from layers import AttentionLayer, ConsumeMask
+from .layers import AttentionLayer, ConsumeMask
 
 logger = logging.getLogger(__name__)
 
