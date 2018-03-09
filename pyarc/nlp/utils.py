@@ -7,6 +7,11 @@ import re
 import itertools
 from zhon import hanzi
 import opencc
+import logging
+import six
+
+
+logger = logging.getLogger(__name__)
 
 
 __english_periods = u'\r|\n|\?!|!|\?|\. '
@@ -158,26 +163,38 @@ ENTITY_MAPPING = {
 }
 
 
-def simple_preprocess(text, trim_space=True, t2s=False, full2half=False,
-                      lower=False, maps=None):
-    if not text:
-        return text
-    if trim_space:
-        text = re.sub(u'\s{2,}', ' ', text)
-    if t2s:
-        text = opencc.convert(text)
-    if full2half:
-        text = str_full2half(text)
-    if lower:
-        text = text.lower()
-    for m in maps or []:
+def simple_preprocess(text, *maps, **ops):
+    ''' Simpole preprocess.
+
+    Args:
+      text: unicode string to process
+      maps: conversion maps
+      ops: operations to do. Supported: trim_space, t2s, full2half, lower.
+
+    Returns:
+      procesed string.
+    '''
+    for m in maps:
         for fr, to in m.iteritems():
             text = re.sub(fr, to, text)
+    if not text:
+        return text
+    if ops.get('trim_space', False):
+        text = re.sub(u'\s{2,}', ' ', text)
+    if ops.get('t2s', False):
+        text = opencc.convert(text)
+    if ops.get('full2half', False):
+        text = str_full2half(text)
+    if ops.get('lower', False):
+        text = text.lower()
     return text
 
 
 def merge_segmented_entities(words, entity_list):
-    s = ' '.join(words)
+    if isinstance(words, six.string_types):
+        s = words
+    else:
+        s = ' '.join(words)
     res = []
     cur = []
     for t in s:
@@ -195,7 +212,11 @@ def merge_segmented_entities(words, entity_list):
         else:
             cur.append(t)
     res.extend(cur)
-    return ''.join(res).split()
+    res = ''.join(res)
+    if isinstance(words, six.string_types):
+        return res
+    else:
+        return res.split()
 
 
 if __name__ == '__main__':
