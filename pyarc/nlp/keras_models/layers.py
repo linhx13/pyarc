@@ -171,29 +171,29 @@ class AttentionLayer(Layer):
                              ' layer with an input')
         return self.at
 
-        def get_config(self):
-            config = {
-                'kernel_initializer':
-                initializers.serialize(self.kernel_initializer),
-                'kernel_regularizer':
-                regularizers.serialize(self.kernel_regularizer),
-                'kernel_constraint':
-                constraints.serialize(self.kernel_constraint),
-                'bias_initializer':
-                initializers.serialize(self.bias_initializer),
-                'bias_regularizer':
-                regularizers.serialize(self.bias_regularizer),
-                'bias_constraint':
-                constraints.serialize(self.bias_constraint),
-                'context_initializer':
-                initializers.serialize(self.context_initializer),
-                'context_regularizer':
-                regularizers.serialize(self.context_regularizer),
-                'context_constraint':
-                constraints.serialize(self.context_constraint)
-            }
-            base_config = super(AttentionLayer, self).get_config()
-            return dict(list(base_config.items()) + list(config.items()))
+    def get_config(self):
+        config = {
+            'kernel_initializer':
+            initializers.serialize(self.kernel_initializer),
+            'kernel_regularizer':
+            regularizers.serialize(self.kernel_regularizer),
+            'kernel_constraint':
+            constraints.serialize(self.kernel_constraint),
+            'bias_initializer':
+            initializers.serialize(self.bias_initializer),
+            'bias_regularizer':
+            regularizers.serialize(self.bias_regularizer),
+            'bias_constraint':
+            constraints.serialize(self.bias_constraint),
+            'context_initializer':
+            initializers.serialize(self.context_initializer),
+            'context_regularizer':
+            regularizers.serialize(self.context_regularizer),
+            'context_constraint':
+            constraints.serialize(self.context_constraint)
+        }
+        base_config = super(AttentionLayer, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
 class ConsumeMask(Layer):
