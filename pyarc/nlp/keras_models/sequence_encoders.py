@@ -122,6 +122,14 @@ class AveragingEncoder(SequenceEncoderBase):
         return GlobalAveragePooling1D()(x)
 
 
+class AttentionEncoder(SequenceEncoderBase):
+    def __init__(self, dropout_rate=0):
+        super(AttentionEncoder, self).__init__(dropout_rate)
+
+    def build_model(self, x):
+        return AttentionLayer()(x)
+
+
 class ShallowCNN(SequenceEncoderBase):
     ''' Yoon Kim's shallow cnn model: https://arxiv.org/pdf/1408.5882.pdf '''
 
@@ -146,7 +154,7 @@ class ShallowCNN(SequenceEncoderBase):
             x_i = Conv1D(self.filters, kernel_size, **self.conv_kwargs)(x)
             x_i = GlobalMaxPooling1D()(x_i)
             pooled_tensors.append(x_i)
-        x = pooled_tensors[0] if len(pooled_tensors) == 0 \
+        x = pooled_tensors[0] if len(pooled_tensors) == 1 \
             else Concatenate()(pooled_tensors)
         return x
 
