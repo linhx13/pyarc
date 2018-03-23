@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from __future__ import print_function
 
 import re
 import itertools
@@ -9,6 +10,7 @@ from zhon import hanzi
 import opencc
 import logging
 import six
+from six import iteritems, unichr
 
 
 logger = logging.getLogger(__name__)
@@ -136,7 +138,7 @@ def convert_fh(text, *maps, **ops):
 
 
 def find_ngrams(seq, n):
-    return itertools.izip(*[itertools.islice(seq, i, None) for i in xrange(n)])
+    return six.moves.zip(*[itertools.islice(seq, i, None) for i in xrange(n)])
 
 
 def extract_ngrams(sequence, ngram_range, sep=None):
@@ -145,7 +147,7 @@ def extract_ngrams(sequence, ngram_range, sep=None):
         .from_iterable(find_ngrams(sequence, n)
                        for n in xrange(ngram_range[0], ngram_range[1]+1))
     if sep is not None:
-        it = itertools.imap(sep.join, it)
+        it = six.moves.map(sep.join, it)
     return it
 
 
@@ -175,7 +177,7 @@ def simple_preprocess(text, *maps, **ops):
       procesed string.
     '''
     for m in maps:
-        for fr, to in m.iteritems():
+        for fr, to in iteritems(m):
             text = re.sub(fr, to, text)
     if not text:
         return text
@@ -225,3 +227,12 @@ if __name__ == '__main__':
                      {u"【": u"[", u"】": u"]", u",": u"，", u".": u"。",
                       u"?": u"？", u"!": u"！"},
                      spit="，。？！“”"))
+
+    text = u'你好，我的邮箱是123@bbb.com，手机是13811111111'
+    text = simple_preprocess(text, ENTITY_MAPPING, lower=True,
+                             full2half=True, t2s=True, trim_space=True)
+    import jieba
+    words = jieba.cut(text)
+    words = merge_segmented_entities(words, ENTITY_MAPPING.values())
+    for w in words:
+        print(w)
