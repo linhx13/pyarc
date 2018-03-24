@@ -4,8 +4,11 @@ import logging
 
 import numpy as np
 from keras import backend as K
-from keras.layers import Layer
+from keras.engine import Layer, InputSpec
+from keras.layers import Flatten
 from keras import initializers, regularizers, constraints
+import tensorflow as tf
+
 
 logger = logging.getLogger(__name__)
 
@@ -205,3 +208,34 @@ class ConsumeMask(Layer):
 
     def call(self, inputs, mask=None):
         return inputs
+
+
+class GlobalKMaxPooling1D(Layer):
+    ''' Global k-max pooling operartion for temporal data.
+
+    # Input shape
+      3D tensor with shape: `(batch_size, steps, features)`.
+
+    # Output shape
+      2D tensor with shape: `(batch_size, k * features).
+    '''
+
+    def __init__(self, k=1, **kwargs):
+        super(GlobalKMaxPooling1D, self).__init__(self, **kwargs)
+        self.k = k
+        self.input_spec = InputSpec(ndim=3)
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[2] * self.k)
+
+    def call(self, inputs):
+
+        # Swap last two dimensions since top_k will be applied along the last
+        # dimension.
+        shifted_inputs = tf.transpose(inputs, [0, 2, 1])
+
+        # Extract top_k, returns two tensors [values, indices]
+        top_k = tf.nn.top_k(shifted_inputs, k=self.k, sorted=True,
+                            name=None)[0]
+
+        return Flatten()(top_k)
