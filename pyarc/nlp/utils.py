@@ -207,6 +207,8 @@ def merge_segmented_entities(words, entity_list):
             cur.append(t)
             e = re.sub(u'\s+', '', ''.join(cur))
             if e in entity_list:
+                if len(res) > 0 and res[-1][-1] != ' ':
+                    res.append(' ')
                 res.append(e)
             else:
                 res.extend(cur)
@@ -218,7 +220,7 @@ def merge_segmented_entities(words, entity_list):
     if isinstance(words, six.string_types):
         return res
     else:
-        return res.split()
+        return res.split(' ')
 
 
 if __name__ == '__main__':
