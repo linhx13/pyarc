@@ -4,10 +4,10 @@ from __future__ import absolute_import
 
 import logging
 from keras.layers import Dropout, GlobalAveragePooling1D, GlobalMaxPooling1D
-from keras.layers import Conv1D, Bidirectional, LSTM, RNN
+from keras.layers import Conv1D, Bidirectional, LSTM, RNN, ZeroPadding1D
 from keras.layers import Concatenate, Input, TimeDistributed
 from keras.models import Model
-from .layers import AttentionLayer, ConsumeMask
+from .layers import AttentionLayer, ConsumeMask, GlobalKMaxPooling1D
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ class AttentionEncoder(SequenceEncoderBase):
         return AttentionLayer()(x)
 
 
-class ShallowCNN(SequenceEncoderBase):
+class TextCNN(SequenceEncoderBase):
     ''' Yoon Kim's shallow cnn model: https://arxiv.org/pdf/1408.5882.pdf '''
 
     def __init__(self, filters=64, kernel_sizes=[2, 3, 4, 5], dropout_rate=0.5,
@@ -143,7 +143,7 @@ class ShallowCNN(SequenceEncoderBase):
             convolutional layers.
           **cnn_kwargs: Additional args for building the `Conv1D` layer.
         '''
-        super(ShallowCNN, self).__init__(dropout_rate)
+        super(TextCNN, self).__init__(dropout_rate)
         self.filters = filters
         self.kernel_sizes = kernel_sizes
         self.conv_kwargs = conv_kwargs
@@ -153,6 +153,29 @@ class ShallowCNN(SequenceEncoderBase):
         for kernel_size in self.kernel_sizes:
             x_i = Conv1D(self.filters, kernel_size, **self.conv_kwargs)(x)
             x_i = GlobalMaxPooling1D()(x_i)
+            pooled_tensors.append(x_i)
+        x = pooled_tensors[0] if len(pooled_tensors) == 1 \
+            else Concatenate()(pooled_tensors)
+        return x
+
+
+class KMaxCNN(SequenceEncoderBase):
+    ''' CNN with k-max pooling. '''
+
+    def __init__(self, filters=64, kernel_sizes=[2, 3, 4, 5], k_max=1,
+                 dropout_rate=0.5, **conv_kwargs):
+        super(KMaxCNN, self).__init__(dropout_rate)
+        self.filters = filters
+        self.kernel_sizes = kernel_sizes
+        self.conv_kwargs = conv_kwargs
+        self.k_max = k_max
+
+    def build_model(self, x):
+        pooled_tensors = []
+        for kernel_size in self.kernel_sizes:
+            x_i = ZeroPadding1D(kernel_size - 1)(x)
+            x_i = Conv1D(self.filters, kernel_size, **self.conv_kwargs)(x_i)
+            x_i = GlobalKMaxPooling1D(self.k_max)(x_i)
             pooled_tensors.append(x_i)
         x = pooled_tensors[0] if len(pooled_tensors) == 1 \
             else Concatenate()(pooled_tensors)
@@ -249,3 +272,26 @@ class AttentionRNN(SequenceEncoderBase):
 
     def allows_dynamic_length(self):
         return True
+
+
+class AttentionCNN(SequenceEncoderBase):
+    def __init__(self, filters=64, kernel_sizes=[2, 3, 4, 5], dropout_rate=0.5,
+                 **conv_kwargs):
+        super(AttentionCNN, self).__init__(dropout_rate)
+        self.filters = filters
+        self.kernel_sizes = kernel_sizes
+        self.conv_kwargs = conv_kwargs
+
+    def build_model(self, x):
+        conv_tensors = []
+        for kernel_size in self.kernel_sizes:
+            x_i = Conv1D(self.filters, kernel_size, **self.conv_kwargs)(x)
+            conv_tensors.append(x_i)
+        if len(conv_tensors) == 1:
+            x = conv_tensors[0]
+        else:
+            x = Concatenate(-2)(conv_tensors)
+        attention_layer = AttentionLayer()
+        attentted_tensor = attention_layer(x)
+        self.attention_tensor = attention_layer.get_attention_tensor()
+        return attentted_tensor

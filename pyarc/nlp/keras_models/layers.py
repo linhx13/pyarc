@@ -221,7 +221,7 @@ class GlobalKMaxPooling1D(Layer):
     '''
 
     def __init__(self, k=1, **kwargs):
-        super(GlobalKMaxPooling1D, self).__init__(self, **kwargs)
+        super(GlobalKMaxPooling1D, self).__init__(**kwargs)
         self.k = k
         self.input_spec = InputSpec(ndim=3)
 
@@ -235,7 +235,11 @@ class GlobalKMaxPooling1D(Layer):
         shifted_inputs = tf.transpose(inputs, [0, 2, 1])
 
         # Extract top_k, returns two tensors [values, indices]
-        top_k = tf.nn.top_k(shifted_inputs, k=self.k, sorted=True,
+        top_k = tf.nn.top_k(shifted_inputs, k=self.k, sorted=False,
                             name=None)[0]
+        return K.batch_flatten(top_k)
 
-        return Flatten()(top_k)
+    def get_config(self):
+        config = {'k': self.k}
+        base_config = super(GlobalKMaxPooling1D, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
