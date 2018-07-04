@@ -81,7 +81,8 @@ class KerasField(torchtext.data.Field):
             tok for tok in [self.pad_token, self.unk_token, self.init_token,
                             self.eos_token]
             if tok is not None))
-        self.vocab = self.vocab_cls(counter, specials=specials, **kwargs)
+        self.vocab = self.vocab_cls(counter, unk_token=self.unk_token,
+                                    specials=specials, **kwargs)
 
 
 class KerasNestedField(torchtext.data.NestedField):
