@@ -7,13 +7,32 @@ from __future__ import print_function
 import re
 import itertools
 from zhon import hanzi
-import opencc
 import logging
 import six
 from six import iteritems, unichr
 
 
 logger = logging.getLogger(__name__)
+
+if not six.PY2:
+    unicode = str
+
+
+def to_utf8(text, encoding='utf-8', errors='strict'):
+    """Convert a string (unicode or bytestring in `encoding`), to bystring in
+    utf-8 encoding. """
+    if isinstance(text, unicode):
+        return text.encode('utf-8')
+    else:
+        return unicode(text, encoding, errors=errors).encode('utf-8')
+
+
+def to_unicode(text, encoding='utf-8', errors='strict'):
+    """Convert a string (bytesstring in `encoding` or unicode) to unicode. """
+    if isinstance(text, unicode):
+        return text
+    else:
+        return unicode(text, encoding, errors=errors)
 
 
 __english_periods = u'\r|\n|\?!|!|\?|\. '
@@ -184,6 +203,7 @@ def simple_preprocess(text, *maps, **ops):
     if ops.get('trim_space', False):
         text = re.sub(u'\s{2,}', ' ', text)
     if ops.get('t2s', False):
+        import opencc
         text = opencc.convert(text)
     if ops.get('full2half', False):
         text = str_full2half(text)
