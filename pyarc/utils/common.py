@@ -14,6 +14,7 @@ from itertools import izip
 import random
 import itertools
 import glob
+import errno
 
 import six
 from six.moves import xrange
@@ -218,3 +219,14 @@ def get_input_files(input_files):
         input_files = [input_files]
     return list(itertools.chain.from_iterable(
         glob.glob(os.path.expanduser(i)) for i in input_files))
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as ex:  # Python >2.5 (except OSError, ex: for Python <2.5)
+        if ex.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
